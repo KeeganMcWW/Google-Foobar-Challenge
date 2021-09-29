@@ -221,7 +221,7 @@ def solution(m):
         else:
             raise ArithmeticError("Matrix inverse out of tolerance.")
 
-            # https://stackoverflow.com/questions/37237954/calculate-the-lcm-of-a-list-of-given-numbers-in-python/54597248
+    # https://stackoverflow.com/questions/37237954/calculate-the-lcm-of-a-list-of-given-numbers-in-python/54597248
 
     def find_lcd(lst):
         lcm = 1
@@ -229,7 +229,7 @@ def solution(m):
             lcm = lcm * i // gcd(lcm, i)
         return lcm
 
-        # below is orginal code used to solve an absorbing markov chain
+    # below is orginal code used to solve an absorbing markov chain
 
     def coerce_matrix(matrix):
         prob_matrix = []
@@ -270,10 +270,46 @@ def solution(m):
             for j in range(R_cols):
                 R[i][j] = prob_matrix[i][-j - 1]
         return prob_matrix, Q, R
+    # start of the active code  
+    
+    # catch case for when only the first row is filled and all other rows are zero
+    zero_count = 0
+    for row in m[1:]:
+        if all(not x for x in row):
+            zero_count += 1
+                  
+    if zero_count == len(m[1:]):
+        prob_array = []
+        num_list = []
+        den_list = []
+        scale_list = []
+        scaled_num = []
+        # make the values into probabilities
+        for ele in m[0][1:]:
+            prob_array.append(float(ele) / float(sum(m[0])))
+        # make the probabilites into a fraction     
+        for ele in prob_array:
+            frac = Fraction(ele).limit_denominator(1000)
+            num_list.append(int(frac.numerator))
+            den_list.append(int(frac.denominator))
+        lcd = find_lcd(den_list)
+        
+        for ele in den_list:
+            scale_list.append(lcd / ele)
+        
+        for i in range(len(num_list)):
+            scaled_num.append(int(num_list[i] * scale_list[i]))
+            
+        scaled_num.reverse()
+        output = scaled_num + [lcd]
+        
+        return output
 
-
+    # this is an important step where we coerce the matrix into its prob matrix and sub components for solving the markov chain
     m_prob, Q, R = coerce_matrix(m)
+    
     # catch case for when the determinant is zero
+    
     if determinant(matrix_subtraction(identity_matrix(len(Q)), Q)) == 0:
         prob_array = []
         all_zero_check = not all(not x for x in m_prob[0])
@@ -281,34 +317,35 @@ def solution(m):
             if all_zero_check:
                 prob_array.append(float(ele) / float(sum(m_prob[0])))
         print(str(prob_array) + str('hello!'))
-        return
-
-    N = invert_matrix(matrix_subtraction(identity_matrix(len(Q)), Q), tol=1)
-    M = matrix_multiply(N, R)
-
-    num_list = []
-    den_list = []
-    scale_list = []
-    scaled_num = []
-
-    for ele in M[0]:
-        frac = Fraction(ele).limit_denominator(1000)
-        num_list.append(int(frac.numerator))
-        den_list.append(int(frac.denominator))
-    lcd = find_lcd(den_list)
-
-    for ele in den_list:
-        scale_list.append(lcd / ele)
-
-    for i in range(len(num_list)):
-        scaled_num.append(int(num_list[i] * scale_list[i]))
-    scaled_num.reverse()
-    output = scaled_num + [lcd]
-    return output
+        output = []
+        return output
+        
+    if zero_count != len(m[1:]):
+        N = invert_matrix(matrix_subtraction(identity_matrix(len(Q)), Q), tol=1)
+        M = matrix_multiply(N, R)
+        
+        num_list = []
+        den_list = []
+        scale_list = []
+        scaled_num = []
+        
+        for ele in M[0]:
+            frac = Fraction(ele).limit_denominator(1000)
+            num_list.append(int(frac.numerator))
+            den_list.append(int(frac.denominator))
+        lcd = find_lcd(den_list)
+        
+        for ele in den_list:
+            scale_list.append(lcd / ele)
+        
+        for i in range(len(num_list)):
+            scaled_num.append(int(num_list[i] * scale_list[i]))
+        scaled_num.reverse()
+        output = scaled_num + [lcd]
+        return output
 
 
 print(solution([[0,1,0,0,0,1],[4,0,0,3,2,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]))
-print(solution([[0, 1, 0, 0, 0, 1], [4, 0, 0, 3, 2, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]))
-print(solution([[0,1],[0,0]]))
-print(solution([[0,1,2],[0,1,0],[0,0,0]]))
-
+print(solution([[0, 2, 1, 0, 0], [0, 0, 0, 3, 4], [0, 0, 0, 0, 0], [0, 0, 0, 0,0], [0, 0, 0, 0, 0]]))
+print(solution([[0,1,1],[0,0,1],[0,0,0]]))
+print(solution([[0,1,2],[0,0,0],[0,0,0]]))
