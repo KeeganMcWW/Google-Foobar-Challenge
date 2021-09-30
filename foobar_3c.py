@@ -26,7 +26,6 @@ def solution(m):
             As = copy_matrix(A)
             As = As[1:]
             height = len(As)
-            builder = 0
             for i in range(height):
                 As[i] = As[i][0:fc] + As[i][fc + 1:]
             sign = (-1) ** (fc % 2)
@@ -189,6 +188,7 @@ def solution(m):
 
             :return: The inverse of the matrix A
         """
+        
         # Section 1: Make sure A can be inverted.
         check_squareness(A)
         check_non_singular(A)
@@ -198,7 +198,7 @@ def solution(m):
         AM = copy_matrix(A)
         I = identity_matrix(n)
         IM = copy_matrix(I)
-
+        
         # Section 3: Perform row operations
         indices = list(range(n))  # to allow flexible row referencing ***
         for fd in range(n):  # fd stands for focus diagonal
@@ -222,13 +222,15 @@ def solution(m):
         else:
             raise ArithmeticError("Matrix inverse out of tolerance.")
 
+    # the following code orginates from this SO answer
     # https://stackoverflow.com/questions/37237954/calculate-the-lcm-of-a-list-of-given-numbers-in-python/54597248
     def find_lcd(lst):
         lcm = 1
         for i in lst:
             lcm = lcm * i // gcd(lcm, i)
         return lcm
-
+    
+    # I borrowed some helper functions from another Markov Chain solution
     # https://github.com/mkutny/absorbing-markov-chains/blob/master/amc.py
     # swap i,j rows/columns of a square matrix `m`
     def swap(m, i, j):
@@ -278,10 +280,9 @@ def solution(m):
         # nothing to sort, return
         return m
 
-    # below is orginal code used to solve an absorbing markov chain
+    # below is my orginal code used to solve an absorbing markov chain
 
     def coerce_matrix(matrix):
-        matrix = sort(matrix)
         prob_matrix = []
         i = 0
         j = 0
@@ -323,13 +324,21 @@ def solution(m):
 
     # start of the active code
 
-    # catch case for when only the first row is filled and all other rows are zero
-    zero_count = 0
+    # it is important to sort the matrix for the following solution! 
+    m = sort(m)
+    # find the starting row of the absorbing states
+    absorbing_row = 0
     for row in m[1:]:
         if all(not x for x in row):
-            zero_count += 1
-
-    if zero_count == len(m[1:]):
+            absorbing_row += 1
+            
+    # special case if the first row is absorbing (which shouldn't happen...)
+    if absorbing_row == 0:
+        output = [0,1]
+        return output
+    
+    # special case for when only the first row is filled and all other rows are zero
+    if absorbing_row == len(m[1:]):
         prob_array = []
         num_list = []
         den_list = []
@@ -355,23 +364,22 @@ def solution(m):
         output = scaled_num + [lcd]
 
         return output
-
+    
     # this is an important step where we coerce the matrix into its prob matrix and sub components for solving the markov chain
     m_prob, Q, R = coerce_matrix(m)
 
     # catch case for when the determinant is zero
-
     if determinant(matrix_subtraction(identity_matrix(len(Q)), Q)) == 0:
         prob_array = []
         all_zero_check = not all(not x for x in m_prob[0])
         for ele in m_prob[0]:
             if all_zero_check:
                 prob_array.append(float(ele) / float(sum(m_prob[0])))
-        print(str(prob_array) + str('hello!'))
         output = []
         return output
 
-    if zero_count != len(m[1:]):
+    # if the matrix is well conditioned for the analyrtical solution of of the Markov Chain then do the calc and return the solution array
+    if absorbing_row != len(m[1:]):
         N = invert_matrix(matrix_subtraction(identity_matrix(len(Q)), Q), tol=1)
         M = matrix_multiply(N, R)
 
@@ -401,4 +409,6 @@ print(solution([[0, 1, 0, 0, 0, 1], [4, 0, 0, 3, 2, 0], [0, 0, 0, 0, 0, 0], [0, 
 print(solution([[0, 2, 1, 0, 0], [0, 0, 0, 3, 4], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]))
 print(solution([[0, 1, 1], [0, 0, 1], [0, 0, 0]]))
 print(solution([[0, 1, 2], [0, 0, 0], [0, 0, 0]]))
+print(solution([[1, 5], [0, 0]]))
+print(solution([[0, 0]]))
 print(solution([[1, 0], [0, 0]]))
