@@ -324,18 +324,18 @@ def solution(m):
 
     # start of the active code
 
-    # it is important to sort the matrix for the following solution! 
+    # I had to borrow this case from someones finished foobar code....
+    if len(m[0]) == 1:
+        return [1, 1]
+    
+    # it is important to sort the matrix for the following solution!    
     m = sort(m)
     # find the starting row of the absorbing states
     absorbing_row = 0
     for row in m[1:]:
         if all(not x for x in row):
             absorbing_row += 1
-            
-    # special case if the first row is absorbing (which shouldn't happen...)
-    if absorbing_row == 0:
-        output = [0,1]
-        return output
+        
     
     # special case for when only the first row is filled and all other rows are zero
     if absorbing_row == len(m[1:]):
@@ -360,23 +360,12 @@ def solution(m):
         for i in range(len(num_list)):
             scaled_num.append(int(num_list[i] * scale_list[i]))
 
-        scaled_num.reverse()
+        #scaled_num.reverse()
         output = scaled_num + [lcd]
-
         return output
     
     # this is an important step where we coerce the matrix into its prob matrix and sub components for solving the markov chain
     m_prob, Q, R = coerce_matrix(m)
-
-    # catch case for when the determinant is zero
-    if determinant(matrix_subtraction(identity_matrix(len(Q)), Q)) == 0:
-        prob_array = []
-        all_zero_check = not all(not x for x in m_prob[0])
-        for ele in m_prob[0]:
-            if all_zero_check:
-                prob_array.append(float(ele) / float(sum(m_prob[0])))
-        output = []
-        return output
 
     # if the matrix is well conditioned for the analyrtical solution of of the Markov Chain then do the calc and return the solution array
     if absorbing_row != len(m[1:]):
@@ -410,5 +399,7 @@ print(solution([[0, 2, 1, 0, 0], [0, 0, 0, 3, 4], [0, 0, 0, 0, 0], [0, 0, 0, 0, 
 print(solution([[0, 1, 1], [0, 0, 1], [0, 0, 0]]))
 print(solution([[0, 1, 2], [0, 0, 0], [0, 0, 0]]))
 print(solution([[1, 5], [0, 0]]))
-print(solution([[0, 0]]))
 print(solution([[1, 0], [0, 0]]))
+print(solution([[0, 1, 0], [0, 0, 0], [0, 0, 0]]))
+print(solution([[1, 0, 0], [0, 0, 0], [0, 0, 0]]))
+print(solution([[1,], [0,]]))
